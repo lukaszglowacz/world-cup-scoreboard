@@ -62,4 +62,24 @@ export class Scoreboard {
 
     this.matches.delete(matchId);
   }
+
+  /**
+   * Returns summary of all ongoing matches
+   * Sorted by: 1) total score DESC, 2) start time DESC (most recent first)
+   * @returns Array of matches in progress
+   */
+  public getSummary(): Match[] {
+    return Array.from(this.matches.values()).sort((a, b) => {
+      const totalA = ScoreValidator.calculateTotalScore(a.homeScore, a.awayScore);
+      const totalB = ScoreValidator.calculateTotalScore(b.homeScore, b.awayScore);
+
+      // Primary sort: total score descending (higher scores first)
+      if (totalA !== totalB) {
+        return totalB - totalA;
+      }
+
+      // Secondary sort: start time descending (most recent first)
+      return b.startTime - a.startTime;
+    });
+  }
 }

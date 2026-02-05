@@ -318,4 +318,145 @@ describe('Scoreboard', () => {
       expect(match2).not.toBe(match1);
     });
   });
+
+  describe('getSummary', () => {
+    it('should return empty array when no matches', () => {
+      const summary = scoreboard.getSummary();
+
+      expect(summary).toEqual([]);
+      expect(summary).toHaveLength(0);
+    });
+
+    it('should return single match', () => {
+      const matchId = scoreboard.startMatch('Mexico', 'Canada');
+      scoreboard.updateScore(matchId, 0, 5);
+
+      const summary = scoreboard.getSummary();
+
+      expect(summary).toHaveLength(1);
+      expect(summary[0]).toBeDefined();
+      expect(summary[0]!.homeTeam).toBe('Mexico');
+      expect(summary[0]!.awayTeam).toBe('Canada');
+      expect(summary[0]!.homeScore).toBe(0);
+      expect(summary[0]!.awayScore).toBe(5);
+    });
+
+    it('should sort by total score descending', () => {
+      const match1 = scoreboard.startMatch('Mexico', 'Canada');
+      const match2 = scoreboard.startMatch('Spain', 'Brazil');
+      const match3 = scoreboard.startMatch('Germany', 'France');
+
+      scoreboard.updateScore(match1, 0, 5); // total: 5
+      scoreboard.updateScore(match2, 10, 2); // total: 12
+      scoreboard.updateScore(match3, 2, 2); // total: 4
+
+      const summary = scoreboard.getSummary();
+
+      expect(summary).toHaveLength(3);
+      expect(summary[0]!.homeTeam).toBe('Spain'); // 12
+      expect(summary[1]!.homeTeam).toBe('Mexico'); // 5
+      expect(summary[2]!.homeTeam).toBe('Germany'); // 4
+    });
+
+    it('should sort by start time when scores are equal', () => {
+      const match1 = scoreboard.startMatch('Mexico', 'Canada');
+      scoreboard.updateScore(match1, 2, 2); // total: 4
+
+      // Small delay to ensure different timestamps
+      const delay = (ms: number): Promise<void> =>
+        new Promise((resolve) => setTimeout(resolve, ms));
+
+      return delay(10).then(() => {
+        const match2 = scoreboard.startMatch('Germany', 'France');
+        scoreboard.updateScore(match2, 1, 3); // total: 4
+
+        const summary = scoreboard.getSummary();
+
+        expect(summary).toHaveLength(2);
+        // Germany-France started more recently, so it comes first
+        expect(summary[0]!.homeTeam).toBe('Germany');
+        expect(summary[1]!.homeTeam).toBe('Mexico');
+      });
+    });
+
+    it('should handle all matches with same score', async () => {
+      // Small delay between starts to ensure different timestamps
+      const delay = (ms: number): Promise<void> =>
+        new Promise((resolve) => setTimeout(resolve, ms));
+
+      scoreboard.startMatch('Match1-Home', 'Match1-Away');
+      await delay(5);
+      scoreboard.startMatch('Match2-Home', 'Match2-Away');
+      await delay(5);
+      scoreboard.startMatch('Match3-Home', 'Match3-Away');
+
+      // Get matches and update them to same total score
+      const matches = scoreboard.getSummary();
+      scoreboard.updateScore(matches[0]!.id, 1, 1);
+      scoreboard.updateScore(matches[1]!.id, 2, 0);
+      scoreboard.updateScore(matches[2]!.id, 0, 2);
+
+      const summary = scoreboard.getSummary();
+
+      expect(summary).toHaveLength(3);
+      // All have total score 2, should be sorted by start time DESC
+      expect(summary[0]!.homeTeam).toBe('Match3-Home'); // started last
+      expect(summary[1]!.homeTeam).toBe('Match2-Home');
+      expect(summary[2]!.homeTeam).toBe('Match1-Home'); // started first
+    });
+
+    it('should handle matches with 0-0 scores', () => {
+      scoreboard.startMatch('Mexico', 'Canada');
+      const match2 = scoreboard.startMatch('Spain', 'Brazil');
+
+      scoreboard.updateScore(match2, 3, 2); // total: 5
+
+      const summary = scoreboard.getSummary();
+
+      expect(summary).toHaveLength(2);
+      expect(summary[0]!.homeTeam).toBe('Spain'); // 5
+      expect(summary[1]!.homeTeam).toBe('Mexico'); // 0
+    });
+
+    it('should not include finished matches', () => {
+      const match1 = scoreboard.startMatch('Mexico', 'Canada');
+      const match2 = scoreboard.startMatch('Spain', 'Brazil');
+
+      scoreboard.updateScore(match1, 3, 5);
+      scoreboard.updateScore(match2, 10, 2);
+
+      scoreboard.finishMatch(match1);
+
+      const summary = scoreboard.getSummary();
+
+      expect(summary).toHaveLength(1);
+      expect(summary[0]!.homeTeam).toBe('Spain');
+    });
+
+    it('should return matches in correct order with mixed scores', () => {
+      const match1 = scoreboard.startMatch('Low-Home', 'Low-Away');
+      const match2 = scoreboard.startMatch('High-Home', 'High-Away');
+      const match3 = scoreboard.startMatch('Medium-Home', 'Medium-Away');
+
+      scoreboard.updateScore(match1, 1, 0); // total: 1
+      scoreboard.updateScore(match2, 10, 8); // total: 18
+      scoreboard.updateScore(match3, 3, 2); // total: 5
+
+      const summary = scoreboard.getSummary();
+
+      expect(summary[0]!.homeTeam).toBe('High-Home'); // 18
+      expect(summary[1]!.homeTeam).toBe('Medium-Home'); // 5
+      expect(summary[2]!.homeTeam).toBe('Low-Home'); // 1
+    });
+
+    it('should return new array on each call', () => {
+      scoreboard.startMatch('Mexico', 'Canada');
+
+      const summary1 = scoreboard.getSummary();
+      const summary2 = scoreboard.getSummary();
+
+      expect(summary1).not.toBe(summary2);
+      expect(summary1).toEqual(summary2);
+    });
+  });
 });
