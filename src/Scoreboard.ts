@@ -1,5 +1,7 @@
 import { Match } from './types';
 import { MatchFactory } from './MatchFactory';
+import { ScoreValidator } from './ScoreValidator';
+import { MatchNotFoundError } from './errors';
 
 /**
  * Live Football World Cup Scoreboard
@@ -23,5 +25,26 @@ export class Scoreboard {
     const match = MatchFactory.createMatch(homeTeam, awayTeam);
     this.matches.set(match.id, match);
     return match.id;
+  }
+
+  /**
+   * Updates the score of an ongoing match
+   * @param matchId - Unique match identifier
+   * @param homeScore - Absolute home team score
+   * @param awayScore - Absolute away team score
+   * @throws {MatchNotFoundError} if match doesn't exist
+   * @throws {InvalidScoreError} if scores are invalid
+   */
+  public updateScore(matchId: string, homeScore: number, awayScore: number): void {
+    const match = this.matches.get(matchId);
+
+    if (!match) {
+      throw new MatchNotFoundError(`Match with ID ${matchId} not found`);
+    }
+
+    ScoreValidator.validateScore(homeScore, awayScore);
+
+    match.homeScore = homeScore;
+    match.awayScore = awayScore;
   }
 }
