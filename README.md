@@ -6,6 +6,7 @@ A simple, type-safe in-memory scoreboard library for tracking live football matc
 [![Test Coverage](https://img.shields.io/badge/coverage-100%25-brightgreen)](https://github.com/lukaszglowacz/world-cup-scoreboard)
 [![Tests](https://img.shields.io/badge/tests-105%20passed-success)](https://github.com/lukaszglowacz/world-cup-scoreboard)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
+[![GitHub](https://img.shields.io/badge/GitHub-lukaszglowacz%2Fworld--cup--scoreboard-blue?logo=github)](https://github.com/lukaszglowacz/world-cup-scoreboard)
 
 ## 📋 Features
 
