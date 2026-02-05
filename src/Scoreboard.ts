@@ -47,4 +47,19 @@ export class Scoreboard {
     match.homeScore = homeScore;
     match.awayScore = awayScore;
   }
+
+  /**
+   * Finishes a match and removes it from the scoreboard
+   * @param matchId - Unique match identifier
+   * @throws {MatchNotFoundError} if match doesn't exist
+   */
+  public finishMatch(matchId: string): void {
+    const match = this.matches.get(matchId);
+
+    if (!match) {
+      throw new MatchNotFoundError(`Match with ID ${matchId} not found`);
+    }
+
+    this.matches.delete(matchId);
+  }
 }

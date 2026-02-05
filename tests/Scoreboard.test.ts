@@ -223,4 +223,99 @@ describe('Scoreboard', () => {
       }).not.toThrow();
     });
   });
+
+  describe('finishMatch', () => {
+    it('should remove match from scoreboard', () => {
+      const matchId = scoreboard.startMatch('Mexico', 'Canada');
+
+      scoreboard.finishMatch(matchId);
+
+      // Verify it's removed by trying to update
+      expect(() => {
+        scoreboard.updateScore(matchId, 1, 0);
+      }).toThrow(MatchNotFoundError);
+    });
+
+    it('should throw error for non-existent match', () => {
+      expect(() => {
+        scoreboard.finishMatch('invalid-id');
+      }).toThrow(MatchNotFoundError);
+
+      expect(() => {
+        scoreboard.finishMatch('invalid-id');
+      }).toThrow('Match with ID invalid-id not found');
+    });
+
+    it('should not affect other matches', () => {
+      const match1 = scoreboard.startMatch('Mexico', 'Canada');
+      const match2 = scoreboard.startMatch('Spain', 'Brazil');
+
+      scoreboard.finishMatch(match1);
+
+      // match2 should still be updatable
+      expect(() => {
+        scoreboard.updateScore(match2, 1, 0);
+      }).not.toThrow();
+    });
+
+    it('should allow finishing match with updated score', () => {
+      const matchId = scoreboard.startMatch('Mexico', 'Canada');
+      scoreboard.updateScore(matchId, 3, 5);
+
+      expect(() => {
+        scoreboard.finishMatch(matchId);
+      }).not.toThrow();
+    });
+
+    it('should allow finishing match with 0-0 score', () => {
+      const matchId = scoreboard.startMatch('Mexico', 'Canada');
+
+      expect(() => {
+        scoreboard.finishMatch(matchId);
+      }).not.toThrow();
+    });
+
+    it('should handle finishing multiple matches', () => {
+      const match1 = scoreboard.startMatch('Mexico', 'Canada');
+      const match2 = scoreboard.startMatch('Spain', 'Brazil');
+      const match3 = scoreboard.startMatch('Germany', 'France');
+
+      scoreboard.finishMatch(match1);
+      scoreboard.finishMatch(match2);
+      scoreboard.finishMatch(match3);
+
+      // All should be removed
+      expect(() => {
+        scoreboard.updateScore(match1, 1, 0);
+      }).toThrow(MatchNotFoundError);
+
+      expect(() => {
+        scoreboard.updateScore(match2, 1, 0);
+      }).toThrow(MatchNotFoundError);
+
+      expect(() => {
+        scoreboard.updateScore(match3, 1, 0);
+      }).toThrow(MatchNotFoundError);
+    });
+
+    it('should prevent finishing same match twice', () => {
+      const matchId = scoreboard.startMatch('Mexico', 'Canada');
+
+      scoreboard.finishMatch(matchId);
+
+      expect(() => {
+        scoreboard.finishMatch(matchId);
+      }).toThrow(MatchNotFoundError);
+    });
+
+    it('should allow starting new match after finishing previous', () => {
+      const match1 = scoreboard.startMatch('Mexico', 'Canada');
+      scoreboard.finishMatch(match1);
+
+      const match2 = scoreboard.startMatch('Mexico', 'Canada');
+
+      expect(match2).toBeDefined();
+      expect(match2).not.toBe(match1);
+    });
+  });
 });
