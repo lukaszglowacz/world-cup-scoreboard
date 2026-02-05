@@ -1,0 +1,25 @@
+{
+  "name": "world-cup-scoreboard",
+  "version": "1.0.0",
+  "description": "Simple in-memory scoreboard library for tracking live football matches",
+  "main": "dist/index.js",
+  "types": "dist/index.d.ts",
+  "scripts": {
+    "build": "tsc",
+    "clean": "rm -rf dist coverage"
+  },
+  "keywords": [
+    "football",
+    "soccer",
+    "scoreboard",
+    "world-cup",
+    "sports",
+    "live-scores"
+  ],
+  "author": "Łukasz Głowacz",
+  "license": "MIT",
+  "devDependencies": {
+    "@types/node": "^20.10.6",
+    "typescript": "^5.3.3"
+  }
+}
